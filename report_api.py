@@ -30,13 +30,15 @@ class ReportApi(object):
             return
         if type_ == "weekly":
             api_response = self._get_weekly_report()
-
-        total_time, prep_time = self._extract_time_values(api_response=api_response)
-
-        report = "⏱  Weekly stats - Total time: {total_time} Prep Time: {prep_time}".format(
+        total_time, project_to_time_dict = self._extract_time_values(api_response=api_response)
+        
+        report = "⏱  Weekly stats - Total time: {total_time}\n".format(
             total_time=self._format_seconds(total_time),
-            prep_time=self._format_seconds(prep_time),
         )
+        for project_name, time in project_to_time_dict.items():
+            report += "   - " + project_name + " --> Time: {prep_hours} hours\n".format(
+            prep_hours=self._format_seconds(time),
+            )
         return report
 
     def _get_weekly_report(self):
@@ -57,19 +59,20 @@ class ReportApi(object):
             "weeklyFilter": {"group": "PROJECT", "subgroup": "TIME"},
         }
         resp = requests.post(url=url, headers=self.headers, json=request_json)
+        # print(resp.text)
         logger.info("Response code: %s" % resp.status_code)
         return json.loads(resp.text)
 
     def _extract_time_values(
         self, api_response: Dict, type_: str = None
-    ) -> Tuple[int, int]:
+    ) -> Tuple[int, dict]:
         total_time = api_response["totals"][0]["totalTime"]
-        prep_time = 0
         projects = api_response["groupOne"]
+        project_to_time_dict = {}
         for project in projects:
-            if project["_id"] == Config.special_project_id:
-                prep_time = project["duration"]
-        return total_time, prep_time
+            if project["duration"] > 0:
+                project_to_time_dict[project["name"]] = project["duration"]
+        return total_time, project_to_time_dict
 
     def _format_seconds(self, seconds: int):
         hours = seconds // (60 * 60)

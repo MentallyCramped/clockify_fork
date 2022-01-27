@@ -36,7 +36,7 @@ class ProductivityUpdate:
             total_minutes=total_minutes
         ) + "\n"
         for project_name, time_details in project_to_time_dict.items():
-            final_message += project_name + " ---> Time: {prep_hours} hours and {prep_minutes} minutes".format(
+            final_message += "   - " + project_name + " --> Time: {prep_hours} hours and {prep_minutes} minutes".format(
             prep_hours=time_details[0],
             prep_minutes=time_details[1]
             ) + "\n"
@@ -46,10 +46,10 @@ class ProductivityUpdate:
         return "🕰 {} did not work today".format(Config.user_name)
 
     def generate_message(self) -> str:
-        message = "Updates for {}\n".format(Config.user_name)
+        message = "```\nUpdates for {}\n\n".format(Config.user_name)
         message += self._get_daily_message()
         weekly_message = ReportApi().report("weekly")
-        message += weekly_message
+        message += "\n\n" + weekly_message + "\n```"
         return message
 
     def generate_summary_df(self, entries: list):
@@ -69,7 +69,6 @@ class ProductivityUpdate:
         return total_hours, total_minutes
 
     def get_special_project_time(self, summary_df: pd.DataFrame):
-        # if Config.special_project_name in summary_df["name"].tolist():
         project_to_hours_map = {}
         for project_row in summary_df.iterrows():
             print(project_row[1])
@@ -89,11 +88,11 @@ class ProductivityUpdate:
             json=message_dict,
             headers={"Content-Type": "application/json"},
         )
-        # print(message_dict)
         return 200
 
     def run(self):
         message = self.generate_message()
+        # print(message)
         return self.notify(message)
 
 

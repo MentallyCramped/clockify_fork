@@ -22,22 +22,22 @@ class ProductivityUpdate:
         else:
             summary_df = self.generate_summary_df(entries)
             total_hours, total_minutes = self.get_total_time(summary_df)
-            prep_hours, prep_minutes = self.get_special_project_time(summary_df)
+            project_to_time_dict = self.get_special_project_time(summary_df)
             message += self._get_work_done_today_message(
-                total_hours, total_minutes, prep_hours, prep_minutes
+                total_hours, total_minutes, project_to_time_dict
             )
         return message
 
     def _get_work_done_today_message(
-        self, total_hours: int, total_minutes: int, prep_hours: int, prep_minutes: int
+        self, total_hours: int, total_minutes: int, project_to_time_dict : dict
     ) -> str:
-
-        return "🕰  Daily stats - Total time: {total_hours} hours and {total_minutes} minutes. Prep time: {prep_hours} hours and {prep_minutes} minutes".format(
-            total_hours=total_hours,
-            total_minutes=total_minutes,
-            prep_hours=prep_hours,
-            prep_minutes=prep_minutes,
-        )
+        final_message = "🕰  Daily stats - Total time: {total_hours} hours and {total_minutes} minutes.\n"
+        for project_name, time_details in project_to_time_dict.items():
+            final_message += project_name + " ---> Time: {prep_hours} hours and {prep_minutes} minutes".format(
+            prep_hours=time_details[0],
+            prep_minutes=time_details[1]
+            ) + "\n"
+        return final_message
 
     def _get_no_work_today_message(self) -> str:
         return "🕰 {} did not work today".format(Config.user_name)
@@ -66,26 +66,27 @@ class ProductivityUpdate:
         return total_hours, total_minutes
 
     def get_special_project_time(self, summary_df: pd.DataFrame):
-        if Config.special_project_name in summary_df["name"].tolist():
+        # if Config.special_project_name in summary_df["name"].tolist():
+        project_to_hours_map = {}
+        for project_row in summary_df.iterrows():
+            print(project_row[1])
             prep_time = (
-                summary_df[summary_df["name"] == Config.special_project_name]["hours"]
-                .tolist()[0]
-                .seconds
+                project_row[1]["hours"].seconds
             )
             prep_hours = prep_time // (60 * 60)
             prep_minutes = (prep_time - prep_hours * 60 * 60) // 60
-            return prep_hours, prep_minutes
-        else:
-            return 0, 0
+            if(prep_minutes > 0 or prep_hours > 0):
+                project_to_hours_map[project_row[1]["name"]] = (prep_hours, prep_minutes)
+        return project_to_hours_map
 
     def notify(self, message: str) -> int:
         message_dict = {"content": message}
-
-        resp = requests.post(
-            url=Config.discord_webhook_url,
-            json=message_dict,
-            headers={"Content-Type": "application/json"},
-        )
+        # resp = requests.post(
+        #     url=Config.discord_webhook_url,
+        #     json=message_dict,
+        #     headers={"Content-Type": "application/json"},
+        # )
+        print(message_dict)
         return 200
 
     def run(self):

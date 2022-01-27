@@ -81,12 +81,12 @@ class ProductivityUpdate:
 
     def notify(self, message: str) -> int:
         message_dict = {"content": message}
-        # resp = requests.post(
-        #     url=Config.discord_webhook_url,
-        #     json=message_dict,
-        #     headers={"Content-Type": "application/json"},
-        # )
-        print(message_dict)
+        resp = requests.post(
+            url=Config.discord_webhook_url,
+            json=message_dict,
+            headers={"Content-Type": "application/json"},
+        )
+        # print(message_dict)
         return 200
 
     def run(self):

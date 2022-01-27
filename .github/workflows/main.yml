@@ -1,0 +1,33 @@
+name: Updater
+
+on:
+  schedule:
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2.3.1
+        with:
+          cache: pip
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Notify discord
+        env:
+          SPECIAL_PROJECT_ID: ${{ secrets.SPECIAL_PROJECT_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+          WORKSPACE_ID: ${{ secrets.WORKSPACE_ID }}
+          USER_ID: ${{ secrets.USER_ID }}
+          SPECIAL_PROJECT_NAME: ${{ secrets.SPECIAL_PROJECT_NAME }}
+          USER_NAME: ${{ secrets.USER_NAME }}
+        run: |
+          python productivity_update.py

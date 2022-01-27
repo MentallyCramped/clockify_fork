@@ -31,7 +31,10 @@ class ProductivityUpdate:
     def _get_work_done_today_message(
         self, total_hours: int, total_minutes: int, project_to_time_dict : dict
     ) -> str:
-        final_message = "🕰  Daily stats - Total time: {total_hours} hours and {total_minutes} minutes.\n"
+        final_message = "🕰  Daily stats - Total time: {total_hours} hours and {total_minutes} minutes".format(
+            total_hours=total_hours,
+            total_minutes=total_minutes
+        ) + "\n"
         for project_name, time_details in project_to_time_dict.items():
             final_message += project_name + " ---> Time: {prep_hours} hours and {prep_minutes} minutes".format(
             prep_hours=time_details[0],
@@ -46,7 +49,7 @@ class ProductivityUpdate:
         message = "Updates for {}\n".format(Config.user_name)
         message += self._get_daily_message()
         weekly_message = ReportApi().report("weekly")
-        message += "\n" + weekly_message
+        message += weekly_message
         return message
 
     def generate_summary_df(self, entries: list):
